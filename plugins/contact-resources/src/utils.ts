@@ -686,6 +686,7 @@ export const permissionsStore = derived(
   [spacesStore, employeeRefByAccountUuidStore],
   ([spaces, personRefByAccount]) => {
     const whitelistedSpaces = new Set<Ref<Space>>()
+    const restrictedSpaces = new Set<Ref<Space>>()
     const permissionsBySpace: PermissionsBySpace = {}
     const employeesByPermission: PersonsByPermission = {}
     const membersBySpace: MembersBySpace = {}
@@ -695,6 +696,10 @@ export const permissionsStore = derived(
     for (const s of spaces) {
       membersBySpace[s._id] = new Set(s.members.map((m) => personRefByAccount.get(m)).filter(notEmpty))
       if (hierarchy.isDerived(s._class, core.class.TypedSpace)) {
+        const typedSpace = s as TypedSpace
+        if (typedSpace.restricted === true) {
+          restrictedSpaces.add(s._id)
+        }
         const type = client.getModel().findAllSync(core.class.SpaceType, { _id: (s as TypedSpace).type })[0]
         const mixin = type?.targetClass
 
@@ -740,7 +745,8 @@ export const permissionsStore = derived(
       ps: permissionsBySpace,
       ap: employeesByPermission,
       ms: membersBySpace,
-      whitelist: whitelistedSpaces
+      whitelist: whitelistedSpaces,
+      restrictedSpaces
     }
   }
 )

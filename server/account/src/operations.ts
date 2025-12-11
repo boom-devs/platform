@@ -120,7 +120,9 @@ import {
   signUpByGrant,
   isAccountPasswordLocked,
   recordFailedLoginAttempt,
-  resetFailedLoginAttempts
+  resetFailedLoginAttempts,
+  updatePasswordAgingRule,
+  checkPasswordAging
 } from './utils'
 
 // Note: it is IMPORTANT to always destructure params passed here to avoid sending extra params
@@ -219,7 +221,9 @@ export async function login (
 
     const isConfirmed = emailSocialId.verifiedOn != null
 
-    const extraToken: Record<string, string> = isAdminEmail(normalizedEmail) ? { admin: 'true' } : {}
+    const extraToken: Record<string, string> = isAdminEmail(normalizedEmail)
+      ? { admin: 'true', authMethod: 'password' }
+      : { authMethod: 'password' }
     ctx.info('Login succeeded', { email, normalizedEmail, isConfirmed, emailSocialId, ...extraToken })
 
     return {
@@ -503,7 +507,9 @@ export async function validateOtp (
 
     await resetFailedLoginAttempts(db, emailSocialId.personUuid as AccountUuid)
 
-    const extraToken: Record<string, string> = isAdminEmail(normalizedEmail) ? { admin: 'true' } : {}
+    const extraToken: Record<string, string> = isAdminEmail(normalizedEmail)
+      ? { admin: 'true', authMethod: 'otp' }
+      : { authMethod: 'otp' }
 
     return {
       account: emailSocialId.personUuid as AccountUuid,
@@ -534,7 +540,7 @@ export async function createWorkspace (
     throw new PlatformError(new Status(Severity.ERROR, platform.status.BadRequest, {}))
   }
 
-  const { account } = decodeTokenVerbose(ctx, token)
+  const { account, extra } = decodeTokenVerbose(ctx, token)
 
   checkRateLimit(account, workspaceName)
 
@@ -576,7 +582,7 @@ export async function createWorkspace (
     account,
     socialId: socialId._id,
     name: getPersonName(person),
-    token: generateToken(account, workspaceUuid),
+    token: generateToken(account, workspaceUuid, extra),
     endpoint: getEndpoint(workspaceUuid, region, EndpointKind.External),
     workspace: workspaceUuid,
     workspaceUrl,
@@ -1391,7 +1397,7 @@ export async function leaveWorkspace (
     throw new PlatformError(new Status(Severity.ERROR, platform.status.BadRequest, {}))
   }
 
-  const { account, workspace } = decodeTokenVerbose(ctx, token)
+  const { account, workspace, extra } = decodeTokenVerbose(ctx, token)
   ctx.info('Removing account from workspace', { account, workspace })
 
   if (account == null || workspace == null) {
@@ -1424,7 +1430,7 @@ export async function leaveWorkspace (
     return {
       account,
       name: getPersonName(person),
-      token: generateToken(account, undefined)
+      token: generateToken(account, undefined, extra)
     }
   }
 
@@ -1916,7 +1922,8 @@ export async function getLoginWithWorkspaceInfo (
               versionPatch: it.status.versionPatch
             },
             progress: it.status.processingProgress,
-            branding: it.branding
+            branding: it.branding,
+            passwordAgingRule: it.passwordAgingRule
           }
         ])
     ),
@@ -2805,6 +2812,8 @@ export type AccountMethods =
   | 'getUserProfile'
   | 'getSubscriptions'
   | 'getSubscriptionById'
+  | 'updatePasswordAgingRule'
+  | 'checkPasswordAging'
 
 /**
  * @public
@@ -2840,6 +2849,8 @@ export function getMethods (hasSignUp: boolean = true): Partial<Record<AccountMe
     updateWorkspaceRole: wrap(updateWorkspaceRole),
     updateAllowReadOnlyGuests: wrap(updateAllowReadOnlyGuests),
     updateAllowGuestSignUp: wrap(updateAllowGuestSignUp),
+    updatePasswordAgingRule: wrap(updatePasswordAgingRule),
+    checkPasswordAging: wrap(checkPasswordAging),
     createMailbox: wrap(createMailbox),
     getMailboxes: wrap(getMailboxes),
     deleteMailbox: wrap(deleteMailbox),

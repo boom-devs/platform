@@ -177,7 +177,7 @@ export class TCardViewDefaults extends TMasterTag implements CardViewDefaults {
 
 @Model(card.class.Role, core.class.Role, DOMAIN_MODEL)
 export class TRole extends TBaseRole implements Role {
-  type!: Ref<MasterTag | Tag>
+  types!: Ref<MasterTag | Tag>[]
 }
 
 @Model(card.class.FavoriteCard, preference.class.Preference)
@@ -472,7 +472,7 @@ export function createModel (builder: Builder): void {
               _class: card.class.Card,
               icon: card.icon.All,
               label: card.string.AllCards,
-              defaultViewletDescriptor: card.viewlet.CardFeedDescriptor
+              defaultViewletDescriptor: view.viewlet.Table
             },
             position: 'top'
           },
@@ -491,7 +491,17 @@ export function createModel (builder: Builder): void {
             position: 'top'
           }
         ],
-        spaces: [],
+        spaces: [
+          {
+            id: 'spaces',
+            label: core.string.Spaces,
+            spaceClass: card.class.CardSpace,
+            addSpaceLabel: core.string.Space,
+            icon: card.icon.Space,
+            // intentionally left empty in order to make space presenter working
+            specials: []
+          }
+        ],
         groups: [
           {
             id: 'types',
@@ -503,14 +513,12 @@ export function createModel (builder: Builder): void {
               {
                 id: 'type',
                 label: card.string.Cards,
-                component: card.component.Main,
-                componentProps: {
-                  defaultViewletDescriptor: card.viewlet.CardFeedDescriptor
-                }
+                component: card.component.Main
               }
             ]
           }
-        ]
+        ],
+        hideStarred: true
       },
       navHeaderActions: card.component.CardHeaderButton
     },
@@ -891,6 +899,10 @@ function defineTabs (builder: Builder): void {
         attachedTo: card.class.Card
       } as any
     }
+  })
+
+  builder.mixin(card.class.Role, core.class.Class, view.mixin.ObjectPresenter, {
+    presenter: setting.component.PermissionPresenter
   })
 
   builder.createDoc<Viewlet>(view.class.Viewlet, core.space.Model, {

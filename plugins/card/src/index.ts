@@ -44,7 +44,7 @@ export interface MasterTag extends Class<Card> {
 export interface Tag extends MasterTag, Mixin<Card> {}
 
 export interface Role extends BaseRole {
-  type: Ref<MasterTag | Tag>
+  types: Ref<MasterTag | Tag>[]
 }
 
 export interface Card extends Doc, IconProps {
@@ -169,10 +169,12 @@ const cardPlugin = plugin(cardId, {
     Space: '' as Asset,
     Expand: '' as Asset,
     Feed: '' as Asset,
-    All: '' as Asset
+    All: '' as Asset,
+    Duplicate: '' as Asset
   },
   extensions: {
-    EditCardExtension: '' as ComponentExtensionId
+    EditCardExtension: '' as ComponentExtensionId,
+    EditCardHeaderExtension: '' as ComponentExtensionId
   },
   string: {
     MasterTag: '' as IntlString,

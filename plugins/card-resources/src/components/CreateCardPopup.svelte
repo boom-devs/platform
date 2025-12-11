@@ -21,16 +21,17 @@
   import { AttachmentStyledBox } from '@hcengineering/attachment-resources'
   import { EmptyMarkup } from '@hcengineering/text'
   import { Employee, getCurrentEmployee } from '@hcengineering/contact'
-  import { SelectUsersPopup, employeeByIdStore } from '@hcengineering/contact-resources'
+  import { SelectUsersPopup, employeeByIdStore, permissionsStore } from '@hcengineering/contact-resources'
   import view from '@hcengineering/view'
 
   import { createCard } from '../utils'
   import CardCollaborators from './CardCollaborators.svelte'
   import { TypeSelector } from '../index'
+  import { canCreateObject } from '@hcengineering/view-resources'
 
   export let title: string = ''
   export let type: Ref<MasterTag> = card.types.Document
-  export let space: CardSpace | undefined = undefined
+  export let space: Ref<CardSpace> | undefined = undefined
   export let changeType: boolean = false
   export let allowChangeSpace: boolean = true
   export let description: Markup = EmptyMarkup
@@ -51,7 +52,7 @@
       : undefined
 
   let data: Partial<Data<Card>> = { title }
-  let _space: Ref<CardSpace> | undefined = space?._id
+  let _space: Ref<CardSpace> | undefined = space
   let collaborators: Ref<Employee>[] = [me]
 
   let creating = false
@@ -140,6 +141,8 @@
       _space = event.detail.space
     }
   }
+
+  $: allowed = _space && canCreateObject(type, _space, $permissionsStore)
 </script>
 
 <Modal
@@ -149,7 +152,7 @@
   okLabel={presentation.string.Create}
   {okAction}
   okLoading={creating}
-  canSave={data.title != null && data.title.trim().length > 0 && _space != null}
+  canSave={data.title != null && data.title.trim().length > 0 && _space != null && allowed}
   onCancel={handleCancel}
   maxWidth="90vw"
   on:close
@@ -167,7 +170,7 @@
     <AttachmentStyledBox
       objectId={_id}
       _class={type}
-      space={_space ?? space?._id}
+      space={_space}
       alwaysEdit
       showButtons={false}
       bind:content={description}

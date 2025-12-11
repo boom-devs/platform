@@ -20,6 +20,8 @@
 
   import Content from '../Content.svelte'
   import { CardSectionAction } from '../../types'
+  import { permissionsStore } from '@hcengineering/contact-resources'
+  import { canChangeDoc } from '@hcengineering/view-resources'
 
   export let readonly: boolean = false
   export let doc: Card
@@ -42,11 +44,20 @@
   onMount(() => {
     dispatch('action', { id: 'toc', toc: [] })
   })
+
+  $: updatePermissionForbidden = doc && !canChangeDoc(doc?._class, doc?.space, $permissionsStore)
 </script>
 
 {#if contentDiv != null}
   <div class="content" class:hidden>
-    <Content {doc} {readonly} content={contentDiv} showToc={false} on:loaded on:headings={handleHeadings} />
+    <Content
+      {doc}
+      readonly={readonly || updatePermissionForbidden}
+      content={contentDiv}
+      showToc={false}
+      on:loaded
+      on:headings={handleHeadings}
+    />
   </div>
 {/if}
 

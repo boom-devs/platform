@@ -33,7 +33,8 @@ import {
   checkRelationsSectionVisibility,
   getSpaceAccessPublicLink,
   canGetSpaceAccessPublicLink,
-  cardFactory
+  cardFactory,
+  duplicateCard
 } from './utils'
 import ManageMasterTagsContent from './components/settings/ManageMasterTagsContent.svelte'
 import ManageMasterTagsTools from './components/settings/ManageMasterTagsTools.svelte'
@@ -57,6 +58,7 @@ import TypesNavigator from './components/navigator/TypesNavigator.svelte'
 import LabelsPresenter from './components/LabelsPresenter.svelte'
 import RolesSection from './components/settings/RolesSection.svelte'
 import EditRole from './components/settings/EditRole.svelte'
+import CreateRolePopup from './components/settings/CreateRolePopup.svelte'
 import CardWidget from './components/CardWidget.svelte'
 import CreateSpace from './components/navigator/CreateSpace.svelte'
 import CardHeaderButton from './components/navigator/CardHeaderButton.svelte'
@@ -126,7 +128,8 @@ export default async (): Promise<Resources> => ({
     CardIcon,
     CardFeedView,
     CreateSpace,
-    CardHeaderButton
+    CardHeaderButton,
+    CreateRolePopup
   },
   sectionComponent: {
     AttachmentsSection: AttachmentsCardSection,
@@ -144,6 +147,7 @@ export default async (): Promise<Resources> => ({
   },
   actionImpl: {
     DeleteMasterTag: deleteMasterTag,
+    DuplicateCard: duplicateCard,
     EditSpace: editSpace
   },
   function: {

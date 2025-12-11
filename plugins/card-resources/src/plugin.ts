@@ -53,7 +53,8 @@ export default mergeIds(cardId, card, {
     CardWidget: '' as AnyComponent,
     CardWidgetTab: '' as AnyComponent,
     CreateCard: '' as AnyComponent,
-    CardHeaderButton: '' as AnyComponent
+    CardHeaderButton: '' as AnyComponent,
+    CreateRolePopup: '' as AnyComponent
   },
   function: {
     CardFactory: '' as Resource<(props?: Record<string, any>) => Promise<Ref<Doc> | undefined>>
@@ -125,6 +126,7 @@ export default mergeIds(cardId, card, {
     CardTitle: '' as IntlString,
     CardContent: '' as IntlString,
     Post: '' as IntlString,
-    ShowLess: '' as IntlString
+    ShowLess: '' as IntlString,
+    Duplicate: '' as IntlString
   }
 })
